@@ -1,13 +1,24 @@
 var express = require('express');
 var router = express.Router();
 
+let values = [];
 /* GET home page. */
-router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Express' });
+router.get('/yo', function (req, res, next) {
+  res.render('magic', { value: values.length });
 });
 
 /* POST home page. */
 router.post('/', function (req, res, next) {
-  res.send('<h1>This is the sent response to POST</h1>');
+  values.push(req.body.value);
+  console.log("The values are ",values);
+  res.render('magic',{value: req.body.value});
 });
-module.exports = router;
+module.exports = function(io){
+  io.on('connection', () => {
+    console.log("This is from route");
+  });
+  io.on('message', data => {
+    console.log("the data is ",data);
+  });
+  return router;
+};
