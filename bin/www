@@ -7,7 +7,10 @@
 var app = require('../app');
 var debug = require('debug')('heart-mon:server');
 var http = require('http');
+const url = require('url');
+
 const WebSocket = require('ws');
+const { execArgv } = require('process');
 /**
  * Get port from environment and store in Express.
  */
@@ -24,28 +27,43 @@ var server = http.createServer(app);
 
 //initialize the WebSocket server instance
 const wss = new WebSocket.Server({ server });
-let myData = [];
-wss.on('connection', (ws) => {
-
+var allData = [];
+wss.on('connection', (ws, req) => {
+  console.log(req.url)
+  //only send data to the browser display
+  if (req.url == "/?client=display") {
     //connection is up, let's add a simple simple event
-    ws.on('message', (message) => {
-        let parse = message.split(",");
-        myData = myData.concat(parse);
-        //log the received message and send it back to the client
-        console.log(`The array is ${myData.length}`);
-        ws.send(`Hello, you sent -> ${message}`);
-        //send to browser client
-        wss.clients.forEach(function each(client) {
-          if (client !== ws && client.readyState == WebSocket.OPEN) {
-            client.send(JSON.stringify(myData));
-          };
-        });
+    ws.id = "display";
+  }
+  else if (req.url == "/?client=source") {
+    //register the ecg source device
+    ws.id = "source";
+  }
+
+  ws.on('message', message => {
+    //log the received message and send it back to the client
+    ws.send(`Hello, you sent -> ${message}`);
+    allData.push(message);
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN && client.id === "display") {
+        sendECG(client, allData);
+      }
     });
 
-    //send immediatly a feedback to the incoming connection    
-    ws.send('Hi there, I am a WebSocket server');
+  });
+
+  //send immediatly a feedback to the incoming connection    
+  ws.send(JSON.stringify({ type: "string", data: "I am the WebSocket!" }));
 });
 
+/** send only a slice of the ecg data to the browser client */
+function sendECG(ws, data) {
+  const windowLength = 100;
+  const frame = data
+    .filter(value => !isNaN(Number(value)))
+    .slice(-windowLength);
+  ws.send(JSON.stringify({ type: "ecg", data: frame }));
+}
 /**
  * Listen on provided port, on all network interfaces.
  */
