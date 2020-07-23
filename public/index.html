@@ -3,19 +3,56 @@
 <head>
   <title>Express</title>
   <link rel="stylesheet" href="/stylesheets/style.css">
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    var socket = io();
-    socket.on('message',data => {
-      console.log(" YOU have mail : ",data);
-    });
   
-  </script>
-</head>
 
 <body>
-  <h1>Express</h1>
-  <p>Welcome to Express</p>
+  <h1>Sensor</h1>
+  <canvas id="ecgPlot" width="400" height="400"></canvas>
 </body>
 
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0">
+  
+</script>
+  <script>
+    var ws = new WebSocket("ws://localhost:3000");
+    var ctx = document.getElementById("ecgPlot").getContext('2d');
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: [0],
+          datasets: [{
+              label: 'ECG Data',
+              borderColor: 'rgb(255, 99, 132)',
+              fill: false,
+              data: [0]
+          }]
+      },
+      options: {
+        animation: {
+            duration: 0 // general animation time
+        },
+        hover: {
+            animationDuration: 0 // duration of animations when hovering an item
+        },
+        responsiveAnimationDuration: 0 // animation duration after a resize
+    }
+    });
+    console.log("My chart ",chart);
+    const windowLength = 100;
+    ws.onmessage = function ({data}){
+      console.log("RAW data is ", data);
+      console.log("JSON data is ",JSON.parse(data));
+      let ecg = JSON.parse(data)
+      .filter(value => value != "" && value != "!")
+      .map(value => Number(value))
+      .filter(value => !isNaN(value));
+
+      console.log("Received ",ecg);
+
+      chart.data.datasets[0].data = ecg.slice(-windowLength);
+      chart.data.labels = [...ecg.slice(-windowLength).keys()];
+      chart.update();
+    };
+  </script>
 </html>

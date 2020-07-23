@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('heart-mon:server');
 var http = require('http');
-
+const WebSocket = require('ws');
 /**
  * Get port from environment and store in Express.
  */
@@ -21,14 +21,37 @@ app.set('port', port);
 
 var server = http.createServer(app);
 /** setup websockets on top of http */
-var io = app.io;
-io.attach(server);
+
+//initialize the WebSocket server instance
+const wss = new WebSocket.Server({ server });
+let myData = [];
+wss.on('connection', (ws) => {
+
+    //connection is up, let's add a simple simple event
+    ws.on('message', (message) => {
+        let parse = message.split(",");
+        myData = myData.concat(parse);
+        //log the received message and send it back to the client
+        console.log(`The array is ${myData.length}`);
+        ws.send(`Hello, you sent -> ${message}`);
+        //send to browser client
+        wss.clients.forEach(function each(client) {
+          if (client !== ws && client.readyState == WebSocket.OPEN) {
+            client.send(JSON.stringify(myData));
+          };
+        });
+    });
+
+    //send immediatly a feedback to the incoming connection    
+    ws.send('Hi there, I am a WebSocket server');
+});
+
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port, '0.0.0.0', function () {
-  console.log('Listening to port:  ' + 3000);
+  console.log(`Listening to port:  ${port}`);
 });
 server.on('error', onError);
 server.on('listening', onListening);

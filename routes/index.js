@@ -13,12 +13,4 @@ router.post('/', function (req, res, next) {
   console.log("The values are ",values);
   res.render('magic',{value: req.body.value});
 });
-module.exports = function(io){
-  io.on('connection', () => {
-    console.log("This is from route");
-  });
-  io.on('message', data => {
-    console.log("the data is ",data);
-  });
-  return router;
-};
+module.exports = router;
