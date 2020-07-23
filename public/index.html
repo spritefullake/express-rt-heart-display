@@ -8,7 +8,7 @@
 <body>
   <h1>Sensor</h1>
   <canvas id="ecgPlot" width="400" height="400"></canvas>
-  <button >Download All Data</button>
+  <button id="ecgDownload">Download All Data</button>
   <style>
     button{
       font-size: 2rem;
@@ -25,7 +25,7 @@
 </script>
   <script>
     var ws = new WebSocket("ws://localhost:3000?client=display");
-    
+    const ecgButton = document.querySelector("#ecgDownload")
     var ctx = document.getElementById("ecgPlot").getContext('2d');
     var chart = new Chart(ctx, {
       type: 'line',
@@ -49,8 +49,15 @@
     }
     });
     
-    console.log("My chart ",chart);
-    
+    ws.onopen = function(event){
+      console.log("opened");
+      ecgButton.addEventListener("click",downloadECG, false);
+    };
+
+    ws.onclose = function(event){
+      ecgButton.removeEventListener("click",downloadECG, false);
+    }
+
     ws.onmessage = function (message){
       console.log("RAW message is ",message.data);
       const {type, data} = JSON.parse(message.data);
@@ -58,7 +65,32 @@
         console.log("RAW data is ", data);
         updateChart(data, chart);
       }
+      if(type == "download"){
+        console.log("Download data here ", data);
+        downloadCSV(data.map((value,index) => [value, index]));
+      }
       
+    };
+
+    function downloadECG(e){
+      e.preventDefault();
+      console.log("Sending download message");
+      ws.send("download");
+    }
+
+    function downloadCSV(data) {
+      var csv = 'ECG;Index\n';
+      data.forEach(function(row) {
+              csv += row.join(',');
+              csv += "\n";
+      });
+  
+      console.log(csv);
+      var hiddenElement = document.createElement('a');
+      hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+      hiddenElement.target = '_blank';
+      hiddenElement.download = 'ecg.csv';
+      hiddenElement.click();
     };
 
     function updateChart(data, chart){

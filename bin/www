@@ -41,6 +41,10 @@ wss.on('connection', (ws, req) => {
   }
 
   ws.on('message', message => {
+    if(ws.id == "display" && message == "download"){
+      ws.send(JSON.stringify({type: "download", data: allData}));
+      
+    }
     //log the received message and send it back to the client
     ws.send(`Hello, you sent -> ${message}`);
     allData.push(message);
