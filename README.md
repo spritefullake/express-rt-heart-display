@@ -14,3 +14,9 @@ then run
 npm run start
 ````
 to start the webserver and go to http://localhost:3000 on your favorite browser to view the display.
+
+To find your local IP Address run
+````
+npm run find-ip
+````
+and from the list of addresses that pops up you can try the IP address that works.

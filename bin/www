@@ -135,10 +135,3 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
-/*
-var os = require( 'os' );
-
-var networkInterfaces = os.networkInterfaces( );
-
-console.log( networkInterfaces );
-*/
