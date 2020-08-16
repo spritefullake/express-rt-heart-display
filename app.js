@@ -19,8 +19,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 app.set('views','./views');
-app.set('view engine', 'html');
-app.engine('html', require('hbs').__express);
+app.set('view engine', 'ejs');
 
 
 

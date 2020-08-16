@@ -28,6 +28,8 @@ var server = http.createServer(app);
 //initialize the WebSocket server instance
 const wss = new WebSocket.Server({ server });
 var allData = [];
+let bufferCounter = 0;
+const bufferLimit = 10;
 wss.on('connection', (ws, req) => {
   console.log(req.url)
   //only send data to the browser display
@@ -43,13 +45,15 @@ wss.on('connection', (ws, req) => {
   ws.on('message', message => {
     if(ws.id == "display" && message == "download"){
       ws.send(JSON.stringify({type: "download", data: allData}));
-      
     }
     //log the received message and send it back to the client
-    ws.send(`Hello, you sent -> ${message}`);
+    //ws.send(`Hello, you sent -> ${message}`);
     allData.push(message);
+    if(++bufferCounter === bufferLimit){
+      bufferCounter = 0;
+    }
     wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN && client.id === "display") {
+      if (client.readyState === WebSocket.OPEN && client.id === "display" && bufferCounter === 0) {
         sendECG(client, allData);
       }
     });
