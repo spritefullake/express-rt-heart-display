@@ -35,7 +35,8 @@
 </script>
 <script>
   var ipAddress = "<%= ipAddress %>";
-  var ws = new WebSocket(`ws://${ipAddress}?client=display`);
+  var port = 3000;
+  var ws = new WebSocket(`ws://${ipAddress}:${port}?client=display`);
   const ecgButton = document.querySelector("#ecgDownload")
   var ctx = document.getElementById("ecgPlot").getContext('2d');
   var chart = new Chart(ctx, {
