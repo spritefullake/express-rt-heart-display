@@ -53,13 +53,13 @@ wss.on('connection', (ws, req) => {
       bufferCounter = 0;
     }
     wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN && client.id === "display" && bufferCounter === 0) {
+      if (client.readyState === WebSocket.OPEN && client.id === "display") {
         sendECG(client, allData);
       }
     });
 
   });
-
+  os.networkInterfaces( )
   //send immediatly a feedback to the incoming connection    
   ws.send(JSON.stringify({ type: "string", data: "I am the WebSocket!" }));
 });
