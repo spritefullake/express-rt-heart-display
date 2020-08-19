@@ -59,7 +59,6 @@ wss.on('connection', (ws, req) => {
     });
 
   });
-  os.networkInterfaces( )
   //send immediatly a feedback to the incoming connection    
   ws.send(JSON.stringify({ type: "string", data: "I am the WebSocket!" }));
 });
